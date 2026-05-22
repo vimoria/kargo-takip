@@ -55,7 +55,13 @@
         align-items: center;
         justify-content: space-between;
         gap: 18px;
+        padding: 14px 16px;
         margin-bottom: 24px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(253, 250, 249, 0.78);
+        box-shadow: 0 12px 28px rgba(42, 16, 24, 0.08);
+        backdrop-filter: blur(10px);
       }
 
       .brand {
@@ -82,6 +88,34 @@
         margin: 4px 0 0;
         color: var(--muted);
         font-size: 0.92rem;
+      }
+
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-shrink: 0;
+      }
+
+      .home-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 42px;
+        padding: 0 14px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        color: var(--brand);
+        background: var(--surface);
+        font-weight: 780;
+        text-decoration: none;
+      }
+
+      .home-link:hover {
+        border-color: rgba(139, 26, 59, 0.45);
+        background: #f5e6ea;
       }
 
       .search-panel {
@@ -558,6 +592,19 @@
           flex-direction: column;
         }
 
+        .brand {
+          align-items: flex-start;
+        }
+
+        .brand-logo {
+          width: min(36vw, 132px);
+        }
+
+        .nav-actions,
+        .home-link {
+          width: 100%;
+        }
+
         .search-panel {
           grid-template-columns: 1fr;
         }
@@ -597,6 +644,15 @@
             <p>Gönderinin nerede olduğunu net ve hızlı gör.</p>
           </div>
         </div>
+        <nav class="nav-actions" aria-label="Üst menü">
+          <a class="home-link" href="https://vimoria.com.tr/" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="m3 10.5 9-7 9 7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M5.5 9.5V20h13V9.5M9.5 20v-6h5v6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Ana Sayfa
+          </a>
+        </nav>
       </header>
 
       <form class="search-panel" id="trackForm">
