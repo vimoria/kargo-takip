@@ -727,7 +727,6 @@
     <script>
       const DAY_MS = 24 * 60 * 60 * 1000;
       const totalTransitDays = 15;
-      const firstShipmentStart = new Date(2026, 4, 23);
       const carrierName = "Yun Express";
       const routeSteps = [
         {
@@ -837,19 +836,6 @@
         }
       ];
 
-      const shipmentPlans = Array.from({ length: 15 }, (_, index) => {
-        const startDate = addDays(firstShipmentStart, index);
-        return {
-          id: `CN20260523${String(index + 1).padStart(2, "0")}`,
-          carrier: "global",
-          carrierName,
-          origin: "Hong Kong",
-          destination: "Türkiye",
-          recipient: "....",
-          startDate
-        };
-      });
-
       const form = document.querySelector("#trackForm");
       const trackingInput = document.querySelector("#trackingInput");
       const notice = document.querySelector("#notice");
@@ -860,8 +846,7 @@
       const movementsPanel = document.querySelector("#movementsPanel");
       const toast = document.querySelector("#toast");
       const timeline = document.querySelector("#timeline");
-      let shipments = shipmentPlans.map(buildShipment);
-      let currentShipment = shipments[0];
+      let currentShipment = null;
 
       function byId(id) { return document.querySelector(id); }
       function startOfDay(date) { return new Date(date.getFullYear(), date.getMonth(), date.getDate()); }
@@ -876,6 +861,28 @@
         return new Date();
       }
       function getElapsedDay(startDate) { return Math.floor((startOfDay(getToday()) - startOfDay(startDate)) / DAY_MS); }
+      function parseTrackingNumber(value) {
+        const match = value.trim().toUpperCase().match(/^VM(\d{2})(\d{2})(\d{2})$/);
+        if (!match) return null;
+        const year = 2000 + Number(match[1]);
+        const month = Number(match[2]);
+        const day = Number(match[3]);
+        const startDate = new Date(year, month - 1, day);
+        const isRealDate =
+          startDate.getFullYear() === year &&
+          startDate.getMonth() === month - 1 &&
+          startDate.getDate() === day;
+        if (!isRealDate) return null;
+        return {
+          id: `VM${match[1]}${match[2]}${match[3]}`,
+          carrier: "global",
+          carrierName,
+          origin: "Hong Kong",
+          destination: "Türkiye",
+          recipient: "....",
+          startDate
+        };
+      }
 
       function buildShipment(plan) {
         const elapsedDay = getElapsedDay(plan.startDate);
@@ -922,9 +929,10 @@
         };
       }
 
-      function refreshShipments() {
-        shipments = shipmentPlans.map(buildShipment);
-        currentShipment = shipments.find((shipment) => shipment.id === currentShipment.id) || shipments[0];
+      function refreshCurrentShipment() {
+        if (!currentShipment) return;
+        const plan = parseTrackingNumber(currentShipment.id);
+        currentShipment = plan ? buildShipment(plan) : currentShipment;
       }
       function renderShipment(shipment) {
         currentShipment = shipment;
@@ -960,9 +968,8 @@
         window.setTimeout(() => toast.classList.remove("show"), 1700);
       }
       function findShipment() {
-        refreshShipments();
-        const requestedId = trackingInput.value.trim().toUpperCase();
-        return shipments.find((shipment) => shipment.id === requestedId);
+        const plan = parseTrackingNumber(trackingInput.value);
+        return plan ? buildShipment(plan) : null;
       }
       form.addEventListener("submit", (event) => {
         event.preventDefault();
@@ -975,6 +982,7 @@
         renderShipment(shipment);
       });
       byId("#copyButton").addEventListener("click", async () => {
+        if (!currentShipment) return;
         try {
           await navigator.clipboard.writeText(currentShipment.id);
           showToast("Takip numarası kopyalandı");
@@ -983,8 +991,8 @@
         }
       });
       byId("#refreshButton").addEventListener("click", () => {
-        refreshShipments();
-        renderShipment(currentShipment);
+        refreshCurrentShipment();
+        if (currentShipment) renderShipment(currentShipment);
         showToast("Bilgiler yenilendi");
       });
       trackingInput.addEventListener("input", () => { trackingInput.value = trackingInput.value.toUpperCase(); });
