@@ -887,24 +887,26 @@
       function buildShipment(plan) {
         const elapsedDay = getElapsedDay(plan.startDate);
         const isBeforeStart = elapsedDay < 0;
-        const activeIndex = isBeforeStart ? 0 : Math.min(elapsedDay, totalTransitDays - 1);
+        const displayDay = isBeforeStart ? 0 : Math.min(elapsedDay, totalTransitDays - 1);
+        const activeIndex = displayDay;
         const activeStep = routeSteps[activeIndex];
+        const isPreparing = isBeforeStart || displayDay < 3;
         const progress = isBeforeStart ? 0 : Math.round(((activeIndex + 1) / totalTransitDays) * 100);
         const latestDate = isBeforeStart ? getToday() : addDays(plan.startDate, activeIndex);
         const visibleSteps = routeSteps
           .map((step, index) => {
             const eventDate = addDays(plan.startDate, index);
-            return [
-              `Gün ${step.day}: ${step.location}`,
-              `${formatDate(eventDate)} · ${step.status} Bekleme: ${step.waiting} Süre: ${step.duration}`,
-              index > activeIndex && !isBeforeStart
-            ];
+            const title = index < 3 ? `Gün ${step.day}: Kargonuz hazırlanıyor` : `Gün ${step.day}: ${step.location}`;
+            const detail = index < 3
+              ? `${formatDate(eventDate)} · Kargonuz hazırlanıyor. Bekleme: Satıcı hazırlık ve depo işlem süreci. Süre: ${step.duration}`
+              : `${formatDate(eventDate)} · ${step.status} Bekleme: ${step.waiting} Süre: ${step.duration}`;
+            return [title, detail, index > activeIndex && !isBeforeStart];
           });
 
         if (isBeforeStart) {
           visibleSteps.unshift([
-            "Kargo kaydı oluşturuldu",
-            `${formatDate(getToday())} · Takip süreci ${formatDate(plan.startDate)} tarihinde başlayacak`,
+            "Kargonuz hazırlanıyor",
+            `${formatDate(getToday())} · Siparişiniz alındı. Kargo hazırlık süreci devam ediyor.`,
             false
           ]);
         }
@@ -913,17 +915,17 @@
           id: plan.id,
           carrier: plan.carrier,
           carrierName: plan.carrierName,
-          status: "Aktarmalı hava kargo sürecinde",
-          statusTone: activeIndex >= 2 && activeIndex <= 12 && !isBeforeStart ? "warn" : "ok",
-          title: isBeforeStart ? "Gönderi bilgisi oluşturuldu." : activeStep.status,
+          status: isPreparing ? "Kargonuz hazırlanıyor" : "Aktarmalı hava kargo sürecinde",
+          statusTone: activeIndex >= 3 && activeIndex <= 12 && !isBeforeStart ? "warn" : "ok",
+          title: isPreparing ? "Kargonuz hazırlanıyor" : activeStep.status,
           updatedAt: `Son güncelleme: ${formatDate(latestDate)}`,
           deliveryDate: "15 gün",
           origin: plan.origin,
           destination: plan.destination,
           recipient: plan.recipient,
           progress,
-          progressText: isBeforeStart ? "Aktarmalı hava kargo süreci henüz başlamadı" : `Gün ${activeStep.day} / ${totalTransitDays}`,
-          routeMessage: isBeforeStart ? `${formatDate(plan.startDate)} tarihinde 15 günlük aktarmalı hava kargo süreci başlayacak.` : `${activeStep.location} konumunda: ${activeStep.status} Bekleme: ${activeStep.waiting}`,
+          progressText: isPreparing ? "Kargonuz hazırlanıyor" : `Gün ${activeStep.day} / ${totalTransitDays}`,
+          routeMessage: isPreparing ? "Siparişiniz alındı. Satıcı hazırlık ve depo işlem süreci devam ediyor." : `${activeStep.location} konumunda: ${activeStep.status} Bekleme: ${activeStep.waiting}`,
           deliveryNote: "Gönderi tipi: Aktarmalı hava kargo. Varış Yeri: Türkiye. Toplam tahmini süre: 15 gün. Alıcı: ....",
           events: visibleSteps
         };
