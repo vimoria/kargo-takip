@@ -607,7 +607,7 @@
           </svg>
           <input id="trackingInput" autocomplete="off" placeholder="Takip numarasını girin" value="" />
         </label>
-        <div class="carrier-pill" aria-label="Kargo firması">Yun Express ile geliyor</div>
+        <div class="carrier-pill" id="carrierPill" aria-label="Kargo firması" style="display: none;">Yun Express ile geliyor</div>
         <button class="primary-btn" type="submit">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="m21 21-4.3-4.3M10.8 18.2a7.4 7.4 0 1 1 0-14.8 7.4 7.4 0 0 1 0 14.8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
@@ -842,6 +842,7 @@
       const emptyState = document.querySelector("#emptyState");
       const shipmentCard = document.querySelector("#shipmentCard");
       const contentArea = document.querySelector("#contentArea");
+      const carrierPill = document.querySelector("#carrierPill");
       const sideStack = document.querySelector("#sideStack");
       const movementsPanel = document.querySelector("#movementsPanel");
       const toast = document.querySelector("#toast");
@@ -894,13 +895,14 @@
         const progress = isBeforeStart ? 0 : Math.round(((activeIndex + 1) / totalTransitDays) * 100);
         const latestDate = isBeforeStart ? getToday() : addDays(plan.startDate, activeIndex);
         const visibleSteps = routeSteps
+          .slice(0, activeIndex + 1)
           .map((step, index) => {
             const eventDate = addDays(plan.startDate, index);
             const title = index < 3 ? `Gün ${step.day}: Kargonuz hazırlanıyor` : `Gün ${step.day}: ${step.location}`;
             const detail = index < 3
               ? `${formatDate(eventDate)} · Kargonuz hazırlanıyor. Bekleme: Satıcı hazırlık ve depo işlem süreci. Süre: ${step.duration}`
               : `${formatDate(eventDate)} · ${step.status} Bekleme: ${step.waiting} Süre: ${step.duration}`;
-            return [title, detail, index > activeIndex && !isBeforeStart];
+            return [title, detail, false];
           });
 
         if (isBeforeStart) {
@@ -940,6 +942,7 @@
         currentShipment = shipment;
         emptyState.classList.remove("show");
         shipmentCard.style.display = "block";
+        carrierPill.style.display = "inline-flex";
         movementsPanel.style.display = "block";
         sideStack.style.display = "grid";
         contentArea.classList.remove("no-result");
