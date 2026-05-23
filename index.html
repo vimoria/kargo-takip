@@ -783,6 +783,7 @@
     <script>
       const DAY_MS = 24 * 60 * 60 * 1000;
       const totalTransitDays = 15;
+      const trackingPrefix = "VMCHTR";
       const carrierName = "Yun Express";
       const routeSteps = [
         {
@@ -919,7 +920,7 @@
       }
       function getElapsedDay(startDate) { return Math.floor((startOfDay(getToday()) - startOfDay(startDate)) / DAY_MS); }
       function parseTrackingNumber(value) {
-        const match = value.trim().toUpperCase().match(/^VM(\d{2})(\d{2})(\d{2})$/);
+        const match = value.trim().toUpperCase().match(/^VMCHTR(\d{2})(\d{2})(\d{2})$/);
         if (!match) return null;
         const year = 2000 + Number(match[1]);
         const month = Number(match[2]);
@@ -931,7 +932,7 @@
           startDate.getDate() === day;
         if (!isRealDate) return null;
         return {
-          id: `VM${match[1]}${match[2]}${match[3]}`,
+          id: `${trackingPrefix}${match[1]}${match[2]}${match[3]}`,
           carrier: "global",
           carrierName,
           origin: "Hong Kong",
@@ -950,24 +951,22 @@
         const isPreparing = isBeforeStart || displayDay < 3;
         const progress = isBeforeStart ? 0 : Math.round(((activeIndex + 1) / totalTransitDays) * 100);
         const latestDate = isBeforeStart ? getToday() : addDays(plan.startDate, activeIndex);
-        const visibleSteps = routeSteps
-          .slice(0, activeIndex + 1)
-          .map((step, index) => {
-            const eventDate = addDays(plan.startDate, index);
-            const title = index < 3 ? `Gün ${step.day}: Kargonuz hazırlanıyor` : `Gün ${step.day}: ${step.location}`;
-            const detail = index < 3
-              ? `${formatDate(eventDate)} · Kargonuz hazırlanıyor. Bekleme: Satıcı hazırlık ve depo işlem süreci. Süre: ${step.duration}`
-              : `${formatDate(eventDate)} · ${step.status} Bekleme: ${step.waiting} Süre: ${step.duration}`;
-            return [title, detail, false];
-          });
-
-        if (isBeforeStart) {
-          visibleSteps.unshift([
+        const visibleSteps = isBeforeStart
+          ? [[
             "Kargonuz hazırlanıyor",
             `${formatDate(getToday())} · Siparişiniz alındı. Kargo hazırlık süreci devam ediyor.`,
             false
-          ]);
-        }
+          ]]
+          : routeSteps
+              .slice(0, activeIndex + 1)
+              .map((step, index) => {
+                const eventDate = addDays(plan.startDate, index);
+                const title = index < 3 ? `Gün ${step.day}: Kargonuz hazırlanıyor` : `Gün ${step.day}: ${step.location}`;
+                const detail = index < 3
+                  ? `${formatDate(eventDate)} · Kargonuz hazırlanıyor. Bekleme: Satıcı hazırlık ve depo işlem süreci. Süre: ${step.duration}`
+                  : `${formatDate(eventDate)} · ${step.status} Bekleme: ${step.waiting} Süre: ${step.duration}`;
+                return [title, detail, false];
+              });
 
         return {
           id: plan.id,
