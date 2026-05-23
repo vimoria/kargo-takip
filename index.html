@@ -581,8 +581,8 @@
 
       @media (max-width: 720px) {
         .app-shell {
-          width: min(100% - 20px, 1180px);
-          padding-top: 14px;
+          width: min(100% - 18px, 1180px);
+          padding-top: 12px;
         }
 
         .topbar,
@@ -592,12 +592,34 @@
           flex-direction: column;
         }
 
+        .topbar {
+          gap: 12px;
+          padding: 12px;
+          margin-bottom: 16px;
+        }
+
         .brand {
           align-items: flex-start;
+          gap: 10px;
         }
 
         .brand-logo {
-          width: min(36vw, 132px);
+          width: min(28vw, 104px);
+        }
+
+        .brand h1 {
+          font-size: clamp(1rem, 5vw, 1.25rem);
+          line-height: 1.08;
+        }
+
+        .brand p {
+          font-size: 0.76rem;
+          line-height: 1.35;
+        }
+
+        .home-link {
+          min-height: 38px;
+          font-size: 0.82rem;
         }
 
         .nav-actions,
@@ -607,6 +629,18 @@
 
         .search-panel {
           grid-template-columns: 1fr;
+          gap: 10px;
+          padding: 12px;
+          margin-bottom: 16px;
+        }
+
+        input,
+        .carrier-pill,
+        .primary-btn,
+        .ghost-btn,
+        .icon-btn {
+          min-height: 44px;
+          font-size: 0.84rem;
         }
 
         .carrier-pill,
@@ -618,8 +652,83 @@
           width: 100%;
         }
 
+        .empty {
+          padding: 22px 18px;
+        }
+
+        .empty svg {
+          width: 34px;
+          height: 34px;
+        }
+
+        .empty h2 {
+          margin: 12px 0 8px;
+          font-size: 1.12rem;
+          line-height: 1.18;
+        }
+
+        .empty p {
+          margin: 0;
+          font-size: 0.84rem;
+          line-height: 1.35;
+        }
+
+        .shipment-header {
+          gap: 14px;
+          padding: 18px;
+        }
+
+        .shipment-header h2 {
+          font-size: 1.18rem;
+        }
+
+        .badge {
+          min-height: 28px;
+          font-size: 0.76rem;
+        }
+
+        .meta {
+          font-size: 0.84rem;
+        }
+
         .summary-grid {
           grid-template-columns: 1fr;
+        }
+
+        .summary-item {
+          padding: 14px 16px;
+        }
+
+        .label {
+          font-size: 0.72rem;
+        }
+
+        .value {
+          font-size: 0.9rem;
+        }
+
+        .route-copy {
+          padding: 20px;
+        }
+
+        .section-head {
+          padding: 16px 16px 0;
+        }
+
+        .timeline {
+          padding: 10px 16px 16px;
+        }
+
+        .event-body strong {
+          font-size: 0.9rem;
+        }
+
+        .event-body p {
+          font-size: 0.84rem;
+        }
+
+        .panel {
+          padding: 16px;
         }
 
         .summary-item,
