@@ -892,6 +892,7 @@
     <script>
       const DAY_MS = 24 * 60 * 60 * 1000;
       const totalTransitDays = 15;
+      const trackingTimeZone = "Europe/Istanbul";
       const trackingPrefix = "VMCHTR";
       const carrierName = "Yun Express";
       const routeSteps = [
@@ -1001,16 +1002,27 @@
       let currentShipment = null;
 
       function byId(id) { return document.querySelector(id); }
-      function startOfDay(date) { return new Date(date.getFullYear(), date.getMonth(), date.getDate()); }
-      function addDays(date, days) { const next = new Date(date); next.setDate(next.getDate() + days); return next; }
-      function formatDate(date) { return date.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" }); }
+      function startOfDay(date) { return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()); }
+      function addDays(date, days) { const next = new Date(date); next.setUTCDate(next.getUTCDate() + days); return next; }
+      function formatDate(date) { return date.toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric", timeZone: trackingTimeZone }); }
+      function dateFromParts(year, month, day) { return new Date(Date.UTC(year, month - 1, day)); }
+      function getIstanbulToday() {
+        const parts = new Intl.DateTimeFormat("en-US", {
+          timeZone: trackingTimeZone,
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit"
+        }).formatToParts(new Date());
+        const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+        return dateFromParts(Number(values.year), Number(values.month), Number(values.day));
+      }
       function getToday() {
         const testDate = new URLSearchParams(window.location.search).get("date");
         if (/^\d{4}-\d{2}-\d{2}$/.test(testDate || "")) {
           const [year, month, day] = testDate.split("-").map(Number);
-          return new Date(year, month - 1, day);
+          return dateFromParts(year, month, day);
         }
-        return new Date();
+        return getIstanbulToday();
       }
       function getElapsedDay(startDate) { return Math.floor((startOfDay(getToday()) - startOfDay(startDate)) / DAY_MS); }
       function parseTrackingNumber(value) {
@@ -1019,11 +1031,11 @@
         const year = 2000 + Number(match[1]);
         const month = Number(match[2]);
         const day = Number(match[3]);
-        const startDate = new Date(year, month - 1, day);
+        const startDate = dateFromParts(year, month, day);
         const isRealDate =
-          startDate.getFullYear() === year &&
-          startDate.getMonth() === month - 1 &&
-          startDate.getDate() === day;
+          startDate.getUTCFullYear() === year &&
+          startDate.getUTCMonth() === month - 1 &&
+          startDate.getUTCDate() === day;
         if (!isRealDate) return null;
         return {
           id: `${trackingPrefix}${match[1]}${match[2]}${match[3]}`,
