@@ -896,105 +896,90 @@
       const carrierName = "Yun Express";
       const routeSteps = [
         {
-          day: 1,
-          location: "Hong Kong",
-          status: "Gönderi bilgisi oluşturuldu.",
-          waiting: "Satıcı paketi hazırlıyor.",
-          duration: "1 gün"
-        },
-        {
-          day: 2,
-          location: "Hong Kong Depo",
-          status: "Paket taşıyıcı firmaya teslim edildi.",
-          waiting: "Konsolidasyon deposuna alındı.",
-          duration: "1 gün"
-        },
-        {
-          day: 3,
-          location: "Hong Kong Hava Kargo Merkezi",
-          status: "Çıkış işlemleri başlatıldı.",
-          waiting: "Uçuş planı bekleniyor.",
-          duration: "1 gün"
-        },
-        {
-          day: 4,
           location: "Hong Kong International Airport",
           status: "İhracat gümrük kontrolü tamamlandı.",
           waiting: "Aktarma uçuşu için yükleme bekliyor.",
           duration: "1 gün"
         },
         {
-          day: 5,
           location: "Hong Kong → Aktarma Merkezi",
           status: "Gönderi çıkış ülkesinden ayrıldı.",
           waiting: "Uçuşta / transit hareket.",
           duration: "1 gün"
         },
         {
-          day: 6,
+          location: "Aktarma Merkezi",
+          status: "Gönderi aktarma sürecine alındı.",
+          waiting: "Transit merkez kabulü bekleniyor.",
+          duration: "1 gün"
+        },
+        {
           location: "Dubai Transit Hub",
           status: "Aktarma merkezine ulaştı.",
           waiting: "Transit depo kabul işlemleri.",
           duration: "1 gün"
         },
         {
-          day: 7,
           location: "Dubai Transit Hub",
           status: "Gönderi aktarma deposunda bekliyor.",
           waiting: "Türkiye uçuşu için sıra bekliyor.",
           duration: "1 gün"
         },
         {
-          day: 8,
           location: "Dubai Transit Hub",
           status: "Güvenlik taraması tamamlandı.",
           waiting: "Uçak kapasitesi ve yükleme planı bekleniyor.",
           duration: "1 gün"
         },
         {
-          day: 9,
           location: "Dubai → Türkiye",
           status: "Gönderi aktarma ülkesinden ayrıldı.",
           waiting: "Türkiye’ye sevk edildi.",
           duration: "1 gün"
         },
         {
-          day: 10,
           location: "İstanbul Havalimanı",
           status: "Gönderi varış ülkesine ulaştı.",
           waiting: "İthalat kayıt işlemleri.",
           duration: "1 gün"
         },
         {
-          day: 11,
           location: "İstanbul Gümrük",
           status: "Gümrük kontrolü başladı.",
           waiting: "Vergi ve evrak kontrolü.",
           duration: "1 gün"
         },
         {
-          day: 12,
           location: "İstanbul Gümrük",
           status: "Gümrük işlemleri devam ediyor.",
           waiting: "X-ray ve sistem onayı bekleniyor.",
           duration: "1 gün"
         },
         {
-          day: 13,
           location: "Türkiye Yerel Dağıtım Merkezi",
           status: "Gümrükten çıktı, yerel taşıyıcıya teslim edildi.",
           waiting: "Şehirler arası transfer hazırlığı.",
           duration: "1 gün"
         },
         {
-          day: 14,
           location: "Türkiye Dağıtım Aktarma Merkezi",
           status: "Paket teslimat şubesine yönlendirildi.",
           waiting: "Son dağıtım planı bekleniyor.",
           duration: "1 gün"
         },
         {
-          day: 15,
+          location: "Türkiye Dağıtım Aktarma Merkezi",
+          status: "Gönderi teslimat bölgesine aktarıldı.",
+          waiting: "Şube kabul işlemi bekleniyor.",
+          duration: "1 gün"
+        },
+        {
+          location: "Teslimat Şubesi",
+          status: "Paket teslimat şubesine ulaştı.",
+          waiting: "Kurye dağıtım planına alınıyor.",
+          duration: "1 gün"
+        },
+        {
           location: "Türkiye",
           status: "Teslimata hazır.",
           waiting: "Kurye dağıtım sırasına alındı.",
@@ -1052,46 +1037,37 @@
       }
 
       function buildShipment(plan) {
-        const elapsedDay = getElapsedDay(plan.startDate);
-        const isBeforeStart = elapsedDay < 0;
-        const displayDay = isBeforeStart ? 0 : Math.min(elapsedDay, totalTransitDays - 1);
-        const activeIndex = displayDay;
+        const trackingStartDate = addDays(plan.startDate, 2);
+        const elapsedDay = getElapsedDay(trackingStartDate);
+        const isBeforeTracking = elapsedDay < 0;
+        const activeIndex = isBeforeTracking ? 0 : Math.min(elapsedDay, totalTransitDays - 1);
         const activeStep = routeSteps[activeIndex];
-        const isPreparing = isBeforeStart || displayDay < 3;
-        const progress = isBeforeStart ? 0 : Math.round(((activeIndex + 1) / totalTransitDays) * 100);
-        const latestDate = isBeforeStart ? getToday() : addDays(plan.startDate, activeIndex);
-        const visibleSteps = isBeforeStart
-          ? [[
-            "Kargonuz hazırlanıyor",
-            `${formatDate(getToday())} · Siparişiniz alındı. Kargo hazırlık süreci devam ediyor.`,
-            false
-          ]]
-          : routeSteps
-              .slice(0, activeIndex + 1)
-              .map((step, index) => {
-                const eventDate = addDays(plan.startDate, index);
-                const title = index < 3 ? `Gün ${step.day}: Kargonuz hazırlanıyor` : `Gün ${step.day}: ${step.location}`;
-                const detail = index < 3
-                  ? `${formatDate(eventDate)} · Kargonuz hazırlanıyor. Bekleme: Satıcı hazırlık ve depo işlem süreci. Süre: ${step.duration}`
-                  : `${formatDate(eventDate)} · ${step.status} Bekleme: ${step.waiting} Süre: ${step.duration}`;
-                return [title, detail, false];
-              });
+        const isComplete = !isBeforeTracking && activeIndex === totalTransitDays - 1;
+        const progress = isBeforeTracking ? 0 : Math.round(((activeIndex + 1) / totalTransitDays) * 100);
+        const latestDate = isBeforeTracking ? trackingStartDate : addDays(trackingStartDate, activeIndex);
+        const visibleSteps = isBeforeTracking
+          ? []
+          : routeSteps.slice(0, activeIndex + 1).map((step, index) => {
+              const eventDate = addDays(trackingStartDate, index);
+              const detail = `${formatDate(eventDate)} · ${step.status} Bekleme: ${step.waiting} Süre: ${step.duration}`;
+              return [step.location, detail, false];
+            });
 
         return {
           id: plan.id,
           carrier: plan.carrier,
           carrierName: plan.carrierName,
-          status: isPreparing ? "Kargonuz hazırlanıyor" : "Aktarmalı hava kargo sürecinde",
-          statusTone: activeIndex >= 3 && activeIndex <= 12 && !isBeforeStart ? "warn" : "ok",
-          title: isPreparing ? "Kargonuz hazırlanıyor" : activeStep.status,
-          updatedAt: `Son güncelleme: ${formatDate(latestDate)}`,
+          status: isBeforeTracking ? "Takip bilgisi bekleniyor" : isComplete ? "Teslimata hazır" : "Aktarmalı hava kargo sürecinde",
+          statusTone: isBeforeTracking ? "warn" : "ok",
+          title: isBeforeTracking ? "Takip bilgisi henüz aktif değil" : activeStep.status,
+          updatedAt: isBeforeTracking ? `Takip başlangıcı: ${formatDate(latestDate)}` : `Son güncelleme: ${formatDate(latestDate)}`,
           deliveryDate: "15 gün",
           origin: plan.origin,
           destination: plan.destination,
           recipient: plan.recipient,
           progress,
-          progressText: isPreparing ? "Kargonuz hazırlanıyor" : `Gün ${activeStep.day} / ${totalTransitDays}`,
-          routeMessage: isPreparing ? "Siparişiniz alındı. Satıcı hazırlık ve depo işlem süreci devam ediyor." : `${activeStep.location} konumunda: ${activeStep.status} Bekleme: ${activeStep.waiting}`,
+          progressText: isBeforeTracking ? "Takip bilgisi bekleniyor" : `Aşama ${activeIndex + 1} / ${totalTransitDays}`,
+          routeMessage: isBeforeTracking ? `Takip bilgisi henüz aktif değil. Gönderi hareketleri ${formatDate(trackingStartDate)} tarihinde görüntülenecek.` : `${activeStep.location} konumunda: ${activeStep.status} Bekleme: ${activeStep.waiting}`,
           deliveryNote: "Gönderi tipi: Aktarmalı hava kargo. Varış Yeri: Türkiye. Toplam tahmini süre: 15 gün. Alıcı: ....",
           events: visibleSteps
         };
@@ -1107,7 +1083,7 @@
         emptyState.classList.remove("show");
         shipmentCard.style.display = "block";
         carrierPill.style.display = "inline-flex";
-        movementsPanel.style.display = "block";
+        movementsPanel.style.display = shipment.events.length ? "block" : "none";
         sideStack.style.display = "grid";
         contentArea.classList.remove("no-result");
         notice.classList.remove("show");
